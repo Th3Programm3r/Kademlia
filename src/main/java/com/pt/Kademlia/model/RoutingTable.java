@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.springframework.scheduling.annotation.Scheduled;
 
 
 public class RoutingTable {
@@ -129,7 +129,9 @@ public class RoutingTable {
         return routingTableString;
     }
 
+
     public void ping() {
+        System.out.println("I GOT ONE LIFE AND I MIGHT JUST LIVE IT");
         for (int i = 0; i < ID_BITS; i++) {
             KBucket bucket = buckets.get(i);
             if (!bucket.getNodes().isEmpty()) {

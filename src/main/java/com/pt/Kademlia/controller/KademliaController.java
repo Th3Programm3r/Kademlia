@@ -5,8 +5,13 @@ import com.pt.Kademlia.model.RoutingTable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+
+//s|kadelmia
+//Work
+//
 @CrossOrigin
 @RestController()
 @RequestMapping("/kademlia")
@@ -62,5 +67,10 @@ public class KademliaController {
     @GetMapping("/load")
     public void load(){
         routingTable.loadFromJsonFile(file);
+    }
+
+    @Scheduled(fixedRateString = "120000")
+    public void callPing(){
+        routingTable.ping();
     }
 }

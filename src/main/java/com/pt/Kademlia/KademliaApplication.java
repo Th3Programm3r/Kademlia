@@ -4,9 +4,11 @@ import com.pt.Kademlia.model.Node;
 import com.pt.Kademlia.model.RoutingTable;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.math.BigInteger;
 
+@EnableScheduling
 @SpringBootApplication
 public class KademliaApplication {
 
