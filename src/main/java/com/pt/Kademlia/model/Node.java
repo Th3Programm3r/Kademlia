@@ -17,6 +17,18 @@ public class Node {
     private final String id;
     private final String ip;
     private final int port;
+    //Lista Nos vizinhos em hash
+    //List dAs transações e quem fex
+    //Validar se a hash ta correta de acordo com a lista interna das hashs das transaçoes
+    //Lista das transaçoes recebidas
+    //propagar para os membros que participam na transação
+
+    //Blockchain
+    //Receber uma transação
+    //Minar as transacoes
+    //Enviar de volta a transacap
+    
+
 
 
     @JsonCreator

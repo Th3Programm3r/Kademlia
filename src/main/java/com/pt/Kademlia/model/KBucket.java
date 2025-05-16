@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigInteger;
 import java.util.LinkedList;
+import java.util.Objects;
 
 @Data
 public class KBucket {
@@ -63,5 +64,13 @@ public class KBucket {
 
     public void removeNode(Node node) {
         nodes.remove(node);
+    }
+
+    public Node findNode(Node node){
+        Node nodeToFind=nodes.stream().filter(_node->
+                _node.getId().equals(node.getId())
+        ).findFirst().get();
+
+        return nodeToFind;
     }
 }

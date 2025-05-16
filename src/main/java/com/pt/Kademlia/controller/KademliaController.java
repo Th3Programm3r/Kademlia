@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 //s|kadelmia
 //Work
-//
+//GUARDAR A LISTA DE HASH NUM JSON E BUSCAR QUANDO A APLICAÇÂO INICIA E GUARDAR QUANDO A APLICAÇÂO TERMINA
+
+
 @CrossOrigin
 @RestController()
 @RequestMapping("/kademlia")
@@ -63,6 +65,18 @@ public class KademliaController {
     public void save(){
         routingTable.saveToJsonFile(file);
     }
+
+
+    @GetMapping("/findNodeByIpAndPort/{ip}/{port}")
+    public Node findNodeByIpAndPort(@PathVariable String ip, @PathVariable int port){
+        return routingTable.findNodeByIpAndPort(ip,port);
+    }
+
+    @GetMapping("/findNodeByHash/{hash}")
+    public Node findNodeByHash(@PathVariable String hash){
+        return routingTable.findNodeByHash(hash);
+    }
+
 
     @GetMapping("/load")
     public void load(){

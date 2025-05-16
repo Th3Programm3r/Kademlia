@@ -5,13 +5,13 @@ import lombok.*;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -20,6 +20,7 @@ public class RoutingTable {
     private static final int ID_BITS = 160; // SHA-1 bit length
     private List<KBucket> buckets = new ArrayList<>();
     private Node localNode;
+    private Map<String, InetSocketAddress> nodeIdToAddressMap = new HashMap<>();
 
     public List<KBucket> getBuckets() { return buckets; }
     public void setBuckets(List<KBucket> buckets) { this.buckets = buckets; }
@@ -44,8 +45,10 @@ public class RoutingTable {
     }
 
     public void addNode(Node node) {
+        nodeIdToAddressMap.put(node.getId(), new InetSocketAddress(node.getIp(), node.getPort()));
         int index = getBucketIndex(node.getId());
         buckets.get(index).addNode(node);
+        sendAddNotificationSameBucket(index,node);
     }
 
     public void addNodeWithClosestNode(Node node, Node closestNode) {
@@ -131,7 +134,7 @@ public class RoutingTable {
 
 
     public void ping() {
-        System.out.println("I GOT ONE LIFE AND I MIGHT JUST LIVE IT");
+        System.out.println("Pinging all nodes");
         for (int i = 0; i < ID_BITS; i++) {
             KBucket bucket = buckets.get(i);
             if (!bucket.getNodes().isEmpty()) {
@@ -165,6 +168,7 @@ public class RoutingTable {
     public void removeNode(Node node) {
         int index = getBucketIndex(node.getId());
         buckets.get(index).removeNode(node);
+        sendDeleteNotificationSameBucket(index,node);
     }
 
     public void saveToJsonFile(String filename) {
@@ -185,5 +189,64 @@ public class RoutingTable {
             System.out.println("No previous routing table found or failed to load.");
             return null;
         }
+    }
+
+    public void sendDeleteNotificationSameBucket(int index, Node nodeDeleted){
+        LinkedList<Node> nodes = buckets.get(index).getNodes();
+
+        for (Node node : nodes) {
+            String url = "http://"+node.getIp()+":"+node.getPort()+"/removedNode?node="+nodeDeleted.getIp()+":"+nodeDeleted.getPort();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (Exception e) {
+                System.out.println("Notification wasnt sent to node " + node.getIp()+":"+node.getPort());
+            }
+        }
+    }
+
+    public void sendAddNotificationSameBucket(int index, Node nodeDeleted){
+        LinkedList<Node> nodes = buckets.get(index).getNodes();
+
+        for (Node node : nodes) {
+            String url = "http://"+node.getIp()+":"+node.getPort()+"/newNode?node="+nodeDeleted.getIp()+":"+nodeDeleted.getPort();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (Exception e) {
+                System.out.println("Notification wasnt sent to node " + node.getIp()+":"+node.getPort());
+            }
+        }
+    }
+
+    public Node findNodeByIpAndPort(String ip, int port){
+        Node node = new Node(ip, port);
+        int index = getBucketIndex(node.getId());
+        Node nodeToBeReturned = buckets.get(index).findNode(node);
+        return nodeToBeReturned;
+    }
+
+    public Node findNodeByHash(String hash){
+        InetSocketAddress address = nodeIdToAddressMap.get(hash);
+        if (address != null) {
+            String ip = address.getHostString();
+            int port = address.getPort();
+            Node node = findNodeByIpAndPort(ip,port);
+            return node;
+        }
+
+        return null;
     }
 }
